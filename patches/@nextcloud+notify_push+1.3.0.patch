@@ -1,0 +1,50 @@
+diff --git a/node_modules/@nextcloud/notify_push/dist/index.js b/node_modules/@nextcloud/notify_push/dist/index.js
+index b562bcf..07eeb08 100644
+--- a/node_modules/@nextcloud/notify_push/dist/index.js
++++ b/node_modules/@nextcloud/notify_push/dist/index.js
+@@ -104,10 +104,19 @@ async function setupSocket(options = {}) {
+             window._notify_push_error_count = 0;
+         }
+         else {
++          if (message.data.startsWith('err:')) {
++                console.error('Notifications: websocket message error notification received.', { message });
++                return;
++            }
+             const i = message.data.indexOf(' ');
+             let [event, body] = i > 0 ? [message.data.slice(0, i), message.data.slice(i + 1)] : [message.data, null];
+             if (body) {
+-                body = JSON.parse(body);
++                try {
++                    body = JSON.parse(body);
++                } catch (e) {
++                    console.error('Notifications: JSON parse of tentative message body failed.', { message, body, e });
++                    return;
++                }
+             }
+             if (window._notify_push_listeners[event]) {
+                 for (let cb of window._notify_push_listeners[event]) {
+diff --git a/node_modules/@nextcloud/notify_push/lib/index.ts b/node_modules/@nextcloud/notify_push/lib/index.ts
+index 9163a79..915834a 100644
+--- a/node_modules/@nextcloud/notify_push/lib/index.ts
++++ b/node_modules/@nextcloud/notify_push/lib/index.ts
+@@ -133,10 +133,19 @@ async function setupSocket(options: NotifyPushOptions = {}) {
+ 		if (message.data === "authenticated") {
+ 			window._notify_push_error_count = 0;
+ 		} else {
++		  if (message.data.startsWith('err:')) {
++				console.error('Notifications: websocket message error notification received.', { message });
++				return;
++			}
+ 			const i = message.data.indexOf(' ');
+ 			let [event, body] = i > 0 ? [message.data.slice(0, i), message.data.slice(i + 1)] : [message.data, null];
+ 			if (body) {
+-				body = JSON.parse(body);
++				try {
++					body = JSON.parse(body);
++				} catch (e) {
++					console.error('Notifications: JSON parse of tentative message body failed.', { message, body, e });
++					return;
++				}
+ 			}
+ 
+ 			if (window._notify_push_listeners[event]) {
